@@ -1,0 +1,173 @@
+#!/usr/bin/env python
+
+# ---------------------------------------------------------------------------
+#
+# dtoon, a tool for creating finished art from scanned drawings 
+#
+# ---------------------------------------------------------------------------
+"""
+Copyright (c) 2018, David H. Rogers 
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+"""
+# ---------------------------------------------------------------------------
+
+import argparse
+from datetime import datetime
+import configparser
+import json
+import logging as log
+import math
+import os
+import subprocess
+import sys
+import textwrap
+
+# ---------------------------------------------------------------------------
+#
+# global variables
+#
+# ---------------------------------------------------------------------------
+# this application
+APP_NAME        = "dtoon"
+APP_VERSION     = 1.0
+APP_EXIT_ERROR  = 42
+
+# ---------------------------------------------------------------------------
+#
+# get initial settings from settings file, if there is one
+#
+# ---------------------------------------------------------------------------
+conf_parser = argparse.ArgumentParser(
+    # Turn off help, so we print all options in response to -h
+    add_help=False
+    )
+
+args, remaining_argv = conf_parser.parse_known_args()
+
+# you can set stuff here, but we're not  currently using this
+# defaults = {
+#     "sourcedir" : "defaultSourcedir",
+#     "author"    : "defaultAuthor",
+#     }
+
+# SHORT CIRCUIT
+# currently not implementing this, until the following work correctly:
+#   1. full command line options
+#   2. run-in-the-directory mode, in which the script is run in a 
+#      manuscript directory, and all the data is local
+#
+#if args.conf_file:
+#    config = ConfigParser.SafeConfigParser()
+#    config.readfp(open(args.conf_file))
+#    defaults = dict(config.items("Default"))
+
+
+# ---------------------------------------------------------------------------
+#
+# command line options
+#
+# ---------------------------------------------------------------------------
+# Don't surpress add_help here so it will handle -h
+parser = argparse.ArgumentParser(
+    # Don't mess with format of description
+    formatter_class=argparse.RawDescriptionHelpFormatter,
+    # Inherit options from config_parser
+    parents=[conf_parser],
+    # print script description with -h/--help
+    epilog=textwrap.dedent('''\
+        examples:
+        
+          dtoon --scantoline
+            initializes the workflow with today's date, copies scanned
+            artwork from a know location, removes the white background
+            and makes remaining pixels black
+
+            ''')
+)
+# parser.set_defaults(**defaults)
+parser.add_argument( "-d", "--debug", action="store_true", default=False,
+    help="run in debug mode: create all files, but do not clean up after pdf is created.")
+parser.add_argument( "-v", "--verbose", action="store_true", default=False,
+    help="report verbosely")
+parser.add_argument( "--scantoline", action="store_true", default=False,
+    help="convert scanned image to line image")
+
+args = parser.parse_args(remaining_argv)
+
+# ---------------------------------------------------------------------------
+#
+# set up the proper reporting mode
+#
+# use these calls as needed for reporting:
+#
+# log.info("verbose message") 
+# log.warning("warning message") 
+# log.error("error message") 
+#
+# ---------------------------------------------------------------------------
+if args.verbose == False:
+    log.basicConfig(format="%(levelname)s: %(message)s")
+else:
+    log.basicConfig(format="%(levelname)s: %(message)s", level=log.DEBUG)
+    log.info("Verbose output.")
+
+# ---------------------------------------------------------------------------
+#
+# check options
+#
+# ---------------------------------------------------------------------------
+
+if (args.scantoline) :
+    # create a working directory
+    # get the current date
+    date = datetime.today().strftime("%Y-%m-%d")
+
+    # file names
+    scan_name = "{}_01-scan.png".format(date)
+    tran_name = "tran.png"
+    line_name = "{}_02-line.png".format(date)
+
+    # create the directory
+    print("Creating directory {}".format(date))
+    os.system("mkdir {}".format(date))
+
+    # copy and rename the scan
+    print("Copying scan ...")
+    os.system("cp ~/Desktop/Scan.jpg {}/{}".format(date, scan_name))
+
+    # remove the white background
+    command = "convert {}/{} -fuzz 10% -transparent white {}/{}".format(date, scan_name, date, tran_name)
+    # print(command)
+    print("Creating transparent image ...")
+    os.system(command)
+
+    # make the lines dark
+    command = "convert {}/{} -alpha extract -threshold 0 -negate -transparent white {}/{}".format( date, tran_name, date, line_name)
+    # print(command)
+    print("Creating line image ...")
+    os.system(command)
+
+    # clean up
+    print("Cleaning up ...")
+    os.system("rm -f {}/{}".format(date, tran_name))
+
