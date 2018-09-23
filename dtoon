@@ -111,6 +111,8 @@ parser.add_argument( "-v", "--verbose", action="store_true", default=False,
     help="report verbosely")
 parser.add_argument( "--scantoline", action="store_true", default=False,
     help="convert scanned image to line image")
+parser.add_argument( "--input", default="none.png", required=True,
+    help="input file")
 
 args = parser.parse_args(remaining_argv)
 
@@ -138,6 +140,12 @@ else:
 # ---------------------------------------------------------------------------
 
 if (args.scantoline) :
+
+    print(args.input)
+    if (not os.path.isfile(args.input)) :
+        print("ERROR: input file ({}) does not exist ... exiting".format(args.input))
+        exit(0)
+
     # create a working directory
     # get the current date
     date = datetime.today().strftime("%Y-%m-%d")
@@ -153,7 +161,7 @@ if (args.scantoline) :
 
     # copy and rename the scan
     print("Copying scan ...")
-    os.system("cp ~/Desktop/Scan.jpg {}/{}".format(date, scan_name))
+    os.system("cp {} {}/{}".format(args.input, date, scan_name))
 
     # remove the white background
     command = "convert {}/{} -fuzz 10% -transparent white {}/{}".format(date, scan_name, date, tran_name)
