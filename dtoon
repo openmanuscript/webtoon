@@ -111,8 +111,12 @@ parser.add_argument( "-v", "--verbose", action="store_true", default=False,
     help="report verbosely")
 parser.add_argument( "--scantoline", action="store_true", default=False,
     help="convert scanned image to line image")
-parser.add_argument( "--input", default="none.png", required=True,
+parser.add_argument( "--input", default="none.png", 
     help="input file")
+parser.add_argument( "--shrink", action="store_true", default=False,
+    help="shrink final art image to final published size")
+parser.add_argument( "--pubwidth", default="800", 
+    help="width of the final published image")
 
 args = parser.parse_args(remaining_argv)
 
@@ -139,6 +143,18 @@ else:
 #
 # ---------------------------------------------------------------------------
 
+# common names
+# get the current date
+date = datetime.today().strftime("%Y-%m-%d")
+resdir = date
+
+# file names
+scan_name  = "{}_01-scan.png".format(date)
+tran_name  = "tran.png"
+line_name  = "{}_02-line.png".format(date)
+final_name = "{}_03-final.png".format(date)
+small_name = "{}_04-final_{}px.png".format(date, args.pubwidth)
+
 if (args.scantoline) :
 
     print(args.input)
@@ -146,36 +162,38 @@ if (args.scantoline) :
         print("ERROR: input file ({}) does not exist ... exiting".format(args.input))
         exit(0)
 
-    # create a working directory
-    # get the current date
-    date = datetime.today().strftime("%Y-%m-%d")
-
-    # file names
-    scan_name = "{}_01-scan.png".format(date)
-    tran_name = "tran.png"
-    line_name = "{}_02-line.png".format(date)
-
     # create the directory
-    print("Creating directory {}".format(date))
-    os.system("mkdir {}".format(date))
+    print("Creating directory {}".format(resdir))
+    os.system("mkdir {}".format(resdir))
 
     # copy and rename the scan
     print("Copying scan ...")
-    os.system("cp {} {}/{}".format(args.input, date, scan_name))
+    os.system("cp {} {}/{}".format(args.input, resdir, scan_name))
 
     # remove the white background
-    command = "convert {}/{} -fuzz 10% -transparent white {}/{}".format(date, scan_name, date, tran_name)
+    command = "convert {}/{} -fuzz 10% -transparent white {}/{}".format(resdir, scan_name, resdir, tran_name)
     # print(command)
     print("Creating transparent image ...")
     os.system(command)
 
     # make the lines dark
-    command = "convert {}/{} -alpha extract -threshold 0 -negate -transparent white {}/{}".format( date, tran_name, date, line_name)
+    command = "convert {}/{} -alpha extract -threshold 0 -negate -transparent white {}/{}".format( resdir, tran_name, resdir, line_name)
     # print(command)
     print("Creating line image ...")
     os.system(command)
 
     # clean up
     print("Cleaning up ...")
-    os.system("rm -f {}/{}".format(date, tran_name))
+    os.system("rm -f {}/{}".format(resdir, tran_name))
 
+elif (args.shrink) :
+
+    final_path = "{}/{}".format(resdir, final_name)
+    if (not os.path.isfile(final_path)) :
+        print("ERROR: input file ({}) does not exist ... exiting".format(final_path))
+        exit(0)
+
+    # shrink the final art image to the final published image size
+    command = "convert {} -resize {} {}/{}".format(final_path, args.pubwidth, resdir, small_name)
+    # print(command)
+    os.system(command)
