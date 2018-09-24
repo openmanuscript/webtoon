@@ -117,6 +117,9 @@ parser.add_argument( "--shrink", action="store_true", default=False,
     help="shrink final art image to final published size")
 parser.add_argument( "--pubwidth", default="800", 
     help="width of the final published image")
+parser.add_argument( "--date", default="none", 
+    help="overwrite the date used for the directory and file names. No format
+    is enforced.")
 
 args = parser.parse_args(remaining_argv)
 
@@ -144,8 +147,10 @@ else:
 # ---------------------------------------------------------------------------
 
 # common names
-# get the current date
-date = datetime.today().strftime("%Y-%m-%d")
+# get the current date, if the command line arg hasn't been set
+if (args.date == "none") :
+    date = datetime.today().strftime("%Y-%m-%d")
+date   = args.date
 resdir = date
 
 # file names
