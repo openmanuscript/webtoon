@@ -118,8 +118,7 @@ parser.add_argument( "--shrink", action="store_true", default=False,
 parser.add_argument( "--pubwidth", default="800", 
     help="width of the final published image")
 parser.add_argument( "--date", default="none", 
-    help="overwrite the date used for the directory and file names. No format
-    is enforced.")
+    help="overwrite the date used for the directory and file names. No format is enforced.")
 
 args = parser.parse_args(remaining_argv)
 
@@ -148,21 +147,21 @@ else:
 
 # common names
 # get the current date, if the command line arg hasn't been set
+date = args.date
 if (args.date == "none") :
     date = datetime.today().strftime("%Y-%m-%d")
-date   = args.date
 resdir = date
 
 # file names
 scan_name  = "{}_01-scan.png".format(date)
-tran_name  = "tran.png"
+dark_name  = "dark.png"
 line_name  = "{}_02-line.png".format(date)
 final_name = "{}_03-final.png".format(date)
 small_name = "{}_04-final_{}px.png".format(date, args.pubwidth)
 
 if (args.scantoline) :
 
-    print(args.input)
+    # check inputs 
     if (not os.path.isfile(args.input)) :
         print("ERROR: input file ({}) does not exist ... exiting".format(args.input))
         exit(0)
@@ -175,21 +174,21 @@ if (args.scantoline) :
     print("Copying scan ...")
     os.system("cp {} {}/{}".format(args.input, resdir, scan_name))
 
-    # remove the white background
-    command = "convert {}/{} -fuzz 10% -transparent white {}/{}".format(resdir, scan_name, resdir, tran_name)
+    # darken the image
+    command = "convert {}/{} -level 0%,100%,0.5 {}/{}".format(resdir, scan_name, resdir, dark_name)
     # print(command)
-    print("Creating transparent image ...")
+    print("Creating darkened image ...")
     os.system(command)
 
-    # make the lines dark
-    command = "convert {}/{} -alpha extract -threshold 0 -negate -transparent white {}/{}".format( resdir, tran_name, resdir, line_name)
+    # remove the white background
+    command = "convert {}/{} -fuzz 10% -transparent white {}/{}".format(resdir, dark_name, resdir, line_name)
     # print(command)
     print("Creating line image ...")
     os.system(command)
 
     # clean up
     print("Cleaning up ...")
-    os.system("rm -f {}/{}".format(resdir, tran_name))
+    os.system("rm -f {}/{}".format(resdir, dark_name))
 
 elif (args.shrink) :
 
