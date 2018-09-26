@@ -1,4 +1,4 @@
-APPNAME = dtoon
+APPNAME = webtoon
 INSTALLDIR = ~/bin
 
 install:
