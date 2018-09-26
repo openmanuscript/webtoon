@@ -2,12 +2,12 @@
 
 A set of simple tools for web comics. The tools support the following workflow:
 
-- Draw line art on paper, then scan into an image.
-- use `dtoon --scantoline` to convert the scanned image into line art.
-- incorporate the resulting image into final colored art (with a tool of your
-  choice. Save that out as final artwork.
-- use `dtoon --shrink` to convert the final artwork into the final resolution
-  you need.
+1. Draw line art on paper, then scan into an image.
+2. use `dtoon --scantoline` to convert the scanned image into line art.
+3. incorporate the resulting image into final colored art (with a tool of your
+   choice. Save that out as final artwork.
+4. use `dtoon --shrink` to convert the final artwork into the final resolution
+   you need.
 
 The script assumes that a date is used to name and organize the files.
 It creates a directory with the date, and names the files according to
