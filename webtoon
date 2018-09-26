@@ -2,7 +2,7 @@
 
 # ---------------------------------------------------------------------------
 #
-# dtoon, a tool for creating finished art from scanned drawings 
+# webtoon, a tool for creating finished art from scanned drawings 
 #
 # ---------------------------------------------------------------------------
 """
@@ -48,7 +48,7 @@ import textwrap
 #
 # ---------------------------------------------------------------------------
 # this application
-APP_NAME        = "dtoon"
+APP_NAME        = "webtoon"
 APP_VERSION     = 1.0
 APP_EXIT_ERROR  = 42
 
@@ -97,7 +97,7 @@ parser = argparse.ArgumentParser(
     epilog=textwrap.dedent('''\
         examples:
         
-          dtoon --scantoline
+          webtoon --scantoline
             initializes the workflow with today's date, copies scanned
             artwork from a know location, removes the white background
             and makes remaining pixels black
