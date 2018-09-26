@@ -154,7 +154,7 @@ resdir = date
 
 # file names
 scan_name  = "{}_01-scan.png".format(date)
-dark_name  = "dark.png"
+tran_name  = "tran.png"
 line_name  = "{}_02-line.png".format(date)
 final_name = "{}_03-final.png".format(date)
 small_name = "{}_04-final_{}px.png".format(date, args.pubwidth)
@@ -174,21 +174,21 @@ if (args.scantoline) :
     print("Copying scan ...")
     os.system("cp {} {}/{}".format(args.input, resdir, scan_name))
 
-    # darken the image
-    command = "convert {}/{} -level 0%,100%,0.5 {}/{}".format(resdir, scan_name, resdir, dark_name)
+    # remove the white background
+    command = "convert {}/{} -fuzz 10% -transparent white {}/{}".format(resdir, scan_name, resdir, tran_name)
     # print(command)
-    print("Creating darkened image ...")
+    print("Creating transparent image ...")
     os.system(command)
 
-    # remove the white background
-    command = "convert {}/{} -fuzz 10% -transparent white {}/{}".format(resdir, dark_name, resdir, line_name)
+    # convert all pixels to black 
+    command = "convert {}/{} -alpha extract -threshold 0 -negate -transparent white {}/{}".format(resdir, tran_name, resdir, line_name)
     # print(command)
     print("Creating line image ...")
     os.system(command)
 
     # clean up
     print("Cleaning up ...")
-    os.system("rm -f {}/{}".format(resdir, dark_name))
+    os.system("rm -f {}/{}".format(resdir, tran_name))
 
 elif (args.shrink) :
 
