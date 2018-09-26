@@ -1,4 +1,4 @@
-## tools for web comics
+## webtoon: a simple tool for web comics
 
 A set of simple tools for web comics. The tools support the following workflow:
 
